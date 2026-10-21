@@ -1,0 +1,9 @@
+{
+  "IneraFHIRTemplate": {
+    "name": "IneraFHIRTemplate",
+    "slug": "template",
+    "title": "Inera FHIR Implementation Guide Template",
+    "description": "Mall för Ineras FHIR Implementation Guides.",
+    "latest_version": "2.3.0"
+  }
+}
