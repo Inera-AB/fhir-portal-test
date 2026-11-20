@@ -1,0 +1,141 @@
+name: "Test: jämför IG-versioner"
+
+# Compares two builds of an IG page by page and publishes the result like
+# tracked changes: each changed page in the new build's layout, with added
+# text marked green and removed text struck through red, and an index of
+# changed, added and removed pages. Each side is a folder on a gh-pages
+# branch: a published version in a web root (ig/<name>/<version>) or a
+# branch build in an IG repo (the root, or branches/<branch>).
+#
+# The report is published to
+# https://inera-ab.github.io/fhir-portal-test/compare/<name>/
+
+on:
+  workflow_dispatch:
+    inputs:
+      from-repo:
+        description: Tidigare version, repo (owner/namn)
+        required: true
+        default: inera-ab/fhir-portal
+      from-path:
+        description: Tidigare version, mapp på gh-pages (t.ex. ig/tjanstekatalog/0.2.0)
+        required: true
+      to-repo:
+        description: Ny version, repo (owner/namn)
+        required: true
+        default: inera-ab/tjanstekatalog
+      to-path:
+        description: Ny version, mapp på gh-pages (tomt = roten, dvs. main; branches/develop för develop)
+        required: false
+        default: ''
+      name:
+        description: Rapportens namn i URL:en (tomt = byggs av versionerna)
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-report-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    name: Jämför IG-versioner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tools
+
+      - name: Work out names and addresses
+        id: meta
+        env:
+          FROM_REPO: ${{ inputs.from-repo }}
+          FROM_PATH: ${{ inputs.from-path }}
+          TO_REPO: ${{ inputs.to-repo }}
+          TO_PATH: ${{ inputs.to-path }}
+          NAME: ${{ inputs.name }}
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import os, re
+          def strip(p): return p.strip().strip("/")
+          def url(repo, path):
+              owner, name = repo.split("/")
+              if repo.lower() == "inera-ab/fhir-portal":
+                  base = "https://fhir.inera.se/"
+              else:
+                  base = f"https://{owner.lower()}.github.io/{name}/"
+              return base + (path + "/" if path else "")
+          def label(repo, path):
+              return f"{repo.split('/')[1]}/{path}" if path else f"{repo.split('/')[1]} (main)"
+          fp, tp = strip(os.environ["FROM_PATH"]), strip(os.environ["TO_PATH"])
+          for p in (fp, tp):
+              if ".." in p.split("/"):
+                  raise SystemExit(f"Bad path {p}")
+          fl, tl = label(os.environ["FROM_REPO"], fp), label(os.environ["TO_REPO"], tp)
+          name = os.environ["NAME"].strip() or f"{tl}--{fl}"
+          slug = re.sub(r"[^A-Za-z0-9._-]+", "-", name).strip("-").lower()
+          print(f"from_path={fp}")
+          print(f"to_path={tp}")
+          print(f"from_label={fl}")
+          print(f"to_label={tl}")
+          print(f"to_url={url(os.environ['TO_REPO'], tp)}")
+          print(f"slug={slug}")
+          print(f"report_url=https://inera-ab.github.io/fhir-portal-test/compare/{slug}/")
+          EOF
+
+      - name: Fetch both builds
+        env:
+          FROM_REPO: ${{ inputs.from-repo }}
+          TO_REPO: ${{ inputs.to-repo }}
+          FROM_PATH: ${{ steps.meta.outputs.from_path }}
+          TO_PATH: ${{ steps.meta.outputs.to_path }}
+        run: |
+          fetch() {
+            git clone -q --depth 1 --filter=blob:none --no-checkout --branch gh-pages \
+              "https://github.com/$1.git" "$3"
+            if [ -n "$2" ]; then
+              git -C "$3" sparse-checkout set "$2"
+            fi
+            git -C "$3" checkout -q
+            if [ -n "$2" ] && [ ! -d "$3/$2" ]; then
+              echo "::error::$1 has no folder $2 on gh-pages."
+              exit 1
+            fi
+          }
+          fetch "$FROM_REPO" "$FROM_PATH" old
+          fetch "$TO_REPO" "$TO_PATH" new
+
+      - name: Compare
+        env:
+          FROM_PATH: ${{ steps.meta.outputs.from_path }}
+          TO_PATH: ${{ steps.meta.outputs.to_path }}
+          FROM_LABEL: ${{ steps.meta.outputs.from_label }}
+          TO_LABEL: ${{ steps.meta.outputs.to_label }}
+          TO_URL: ${{ steps.meta.outputs.to_url }}
+          REPORT_URL: ${{ steps.meta.outputs.report_url }}
+        run: |
+          pip install --quiet lxml
+          OLD="old/${FROM_PATH}"; NEW="new/${TO_PATH}"
+          # A repo root also holds the builds of other branches; leave them out.
+          [ -z "$FROM_PATH" ] && rm -rf old/branches
+          [ -z "$TO_PATH" ] && rm -rf new/branches
+          python3 -I tools/scripts/htmldiff_site.py \
+            --old "$OLD" --new "$NEW" --out report \
+            --old-label "$FROM_LABEL" --new-label "$TO_LABEL" \
+            --title "Jämförelse: $FROM_LABEL → $TO_LABEL" \
+            --new-base-url "$TO_URL" --report-url "$REPORT_URL" \
+            --summary summary.md
+
+      - uses: ./tools/.github/actions/publish-report
+        with:
+          source: report
+          destination: compare/${{ steps.meta.outputs.slug }}
+          message: "test: compare ${{ steps.meta.outputs.from_label }} with ${{ steps.meta.outputs.to_label }}"
+
+      - name: Write summary
+        if: always()
+        run: |
+          if [ -f summary.md ]; then cat summary.md >> "$GITHUB_STEP_SUMMARY"; fi

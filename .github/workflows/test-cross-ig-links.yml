@@ -1,0 +1,101 @@
+name: "Test: länkar mellan IG:er"
+
+# Builds an IG and checks that its links to fhir.inera.se (its own published
+# pages, other Inera IGs and the catalog) and its Inera dependencies will
+# resolve once it is published into the chosen web root. IG Publisher's own
+# link check cannot follow these: the target is the web root, not the build.
+# The result is in the run's summary; nothing is published.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ig-repo:
+        description: IG-repo (owner/namn)
+        required: true
+        default: Inera-AB/tjanstekatalog
+      ref:
+        description: Branch, tagg eller commit i IG-repot
+        required: true
+        default: main
+      web-repo:
+        description: Webbroten länkarna ska fungera i
+        type: choice
+        options:
+          - inera-ab/fhir-portal
+          - inera-ab/fhir-portal-test
+        default: inera-ab/fhir-portal
+      tx-server:
+        description: Terminologiserver (tomt = efter IG:ns FHIR-version)
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Länkar mellan IG:er
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tools
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.ig-repo }}
+          ref: ${{ inputs.ref }}
+          path: ig
+
+      - uses: Inera-AB/fhir-ig-workflows/actions/setup-ig-tools@v1
+        with:
+          working-directory: ig
+
+      - name: Build IG
+        working-directory: ig
+        env:
+          TX_INPUT: ${{ inputs.tx-server }}
+        run: |
+          TX="$TX_INPUT"
+          if [ -z "$TX" ]; then
+            case "$(sed -n 's/^fhirVersion: *//p' sushi-config.yaml | tr -d "\"'")" in
+              5*) TX=https://tx.fhir.org/r5 ;;
+              *)  TX=https://tx.fhir.org/r4 ;;
+            esac
+          fi
+          sushi .
+          if ! java -jar input-cache/publisher.jar -ig ig.ini -tx "$TX"; then
+            echo "Build failed with $TX, retrying in 30s..."
+            sleep 30
+            java -jar input-cache/publisher.jar -ig ig.ini -tx "$TX"
+          fi
+
+      - name: Check out web root (file list only)
+        env:
+          WEB_REPO: ${{ inputs.web-repo }}
+        run: |
+          git clone --depth 1 --filter=blob:none --no-checkout --branch gh-pages \
+            "https://github.com/${WEB_REPO}.git" web
+
+      - name: Check links and dependencies
+        run: |
+          PACKAGE_ID=$(sed -n 's/^id: *//p' ig/sushi-config.yaml | tr -d "\"'")
+          python3 -I tools/scripts/cross_ig_links.py \
+            --output ig/output \
+            --web-git web \
+            --package-id "$PACKAGE_ID" \
+            --publication-request ig/publication-request.json \
+            --report report.md \
+            --fail
+
+      - name: Write summary
+        if: always()
+        run: |
+          if [ -f report.md ]; then cat report.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross-ig-links
+          path: report.md
+          if-no-files-found: ignore
