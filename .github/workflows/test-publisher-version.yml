@@ -1,0 +1,197 @@
+name: "Test: ny IG Publisher-version"
+
+# Builds a test IG twice from the same commit, with the IG Publisher version
+# the IGs use today (the one pinned in fhir-ig-workflows@v1) and with a new
+# one, and shows what changed: the QA counts and messages side by side, and
+# every page whose rendering differs, marked like tracked changes. Use it
+# before raising PINNED_PUBLISHER_VERSION in fhir-ig-workflows.
+#
+# The report is published to
+# https://inera-ab.github.io/fhir-portal-test/publisher-test/<ig>-<baseline>-vs-<candidate>/
+#
+# Both builds use the same IG template (fhir2.base.template#current), so a
+# change in the template does not show up here; compare builds over time
+# with "Test: jämför IG-versioner" for that.
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: Ny IG Publisher-version att prova (t.ex. 3.0.6, eller latest)
+        required: true
+        default: latest
+      baseline:
+        description: Version att jämföra med (tomt = den som är låst i fhir-ig-workflows@v1)
+        required: false
+        default: ''
+      ig-repo:
+        description: Test-IG (owner/namn)
+        required: true
+        default: Inera-AB/IneraFHIRTemplate
+      ref:
+        description: Branch, tagg eller commit i test-IG:n
+        required: true
+        default: main
+      tx-server:
+        description: Terminologiserver (tomt = efter IG:ns FHIR-version)
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-report-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    name: Bygg med två IG Publisher-versioner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tools
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.ig-repo }}
+          ref: ${{ inputs.ref }}
+          path: base
+
+      - name: Resolve versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: ${{ inputs.candidate }}
+          BASELINE: ${{ inputs.baseline }}
+          IG_REPO: ${{ inputs.ig-repo }}
+          TX_INPUT: ${{ inputs.tx-server }}
+        run: |
+          if [ -z "$BASELINE" ]; then
+            BASELINE=$(curl -fsSL https://raw.githubusercontent.com/Inera-AB/fhir-ig-workflows/v1/actions/setup-ig-tools/action.yml \
+              | sed -n 's/^ *PINNED_PUBLISHER_VERSION: *//p' | tr -d "\"' ")
+          fi
+          if [ "$CANDIDATE" = "latest" ]; then
+            CANDIDATE=$(gh api repos/HL7/fhir-ig-publisher/releases/latest --jq .tag_name)
+          fi
+          if [ -z "$BASELINE" ] || [ -z "$CANDIDATE" ]; then
+            echo "::error::Could not work out the versions (baseline '$BASELINE', candidate '$CANDIDATE')."
+            exit 1
+          fi
+          TX="$TX_INPUT"
+          if [ -z "$TX" ]; then
+            case "$(sed -n 's/^fhirVersion: *//p' base/sushi-config.yaml | tr -d "\"'")" in
+              5*) TX=https://tx.fhir.org/r5 ;;
+              *)  TX=https://tx.fhir.org/r4 ;;
+            esac
+          fi
+          IG_NAME=$(echo "${IG_REPO#*/}" | tr '[:upper:]' '[:lower:]')
+          SLUG=$(echo "${IG_NAME}-${BASELINE}-vs-${CANDIDATE}" | sed 's/[^A-Za-z0-9._-]/-/g')
+          {
+            echo "baseline=$BASELINE"
+            echo "candidate=$CANDIDATE"
+            echo "tx=$TX"
+            echo "slug=$SLUG"
+            echo "report_url=https://inera-ab.github.io/fhir-portal-test/publisher-test/${SLUG}/"
+          } >> "$GITHUB_OUTPUT"
+          echo "Baseline $BASELINE, candidate $CANDIDATE, terminology server $TX"
+
+      - uses: Inera-AB/fhir-ig-workflows/actions/setup-ig-tools@v1
+        with:
+          working-directory: base
+          publisher-version: ${{ steps.versions.outputs.baseline }}
+
+      - name: Set up the candidate build
+        env:
+          CANDIDATE: ${{ steps.versions.outputs.candidate }}
+        run: |
+          cp -a base cand
+          curl -fsSL "https://github.com/HL7/fhir-ig-publisher/releases/download/${CANDIDATE}/publisher.jar" \
+            -o cand/input-cache/publisher.jar
+
+      - name: Build with the baseline version
+        working-directory: base
+        env:
+          TX: ${{ steps.versions.outputs.tx }}
+        run: |
+          set -o pipefail
+          sushi .
+          java -jar input-cache/publisher.jar -ig ig.ini -tx "$TX" 2>&1 | tee ../build-baseline.log
+
+      - name: Build with the candidate version
+        id: candidate
+        continue-on-error: true
+        working-directory: cand
+        env:
+          TX: ${{ steps.versions.outputs.tx }}
+        run: |
+          set -o pipefail
+          sushi .
+          java -jar input-cache/publisher.jar -ig ig.ini -tx "$TX" 2>&1 | tee ../build-candidate.log
+
+      - name: Compare
+        env:
+          BASELINE: ${{ steps.versions.outputs.baseline }}
+          CANDIDATE: ${{ steps.versions.outputs.candidate }}
+          REPORT_URL: ${{ steps.versions.outputs.report_url }}
+          CANDIDATE_OUTCOME: ${{ steps.candidate.outcome }}
+          IG_REPO: ${{ inputs.ig-repo }}
+          IG_REF: ${{ inputs.ref }}
+        run: |
+          pip install --quiet lxml
+          mkdir -p report
+          {
+            echo "# ${IG_REPO}@${IG_REF}: IG Publisher ${BASELINE} jämfört med ${CANDIDATE}"
+            echo
+            if [ "$CANDIDATE_OUTCOME" != "success" ]; then
+              echo "❌ **Bygget med ${CANDIDATE} misslyckades.** Se byggloggen i körningens artefakt."
+              echo
+            fi
+          } > summary.md
+          if [ -d cand/output ]; then
+            python3 -I tools/scripts/qa_compare.py --old base/output --new cand/output \
+              --old-label "$BASELINE" --new-label "$CANDIDATE" --report report/qa.md
+            cat report/qa.md >> summary.md
+            # The candidate's pages, without the per-resource downloads, so
+            # the diff pages can load their styles and images.
+            rsync -a cand/output/ report/site/ \
+              --exclude='*.json' --exclude='*.xml' --exclude='*.ttl' --exclude='*.zip' \
+              --exclude='*.tgz' --exclude='*.xlsx' --exclude='*.csv' --exclude='*.sch' \
+              --exclude='*.db' --exclude='*.pack' --exclude='*.md' \
+              --exclude='*.json.html' --exclude='*.xml.html' --exclude='*.ttl.html' \
+              --exclude='*-testing.html' --exclude='*.change.history.html'
+            python3 -I tools/scripts/htmldiff_site.py \
+              --old base/output --new cand/output --out report \
+              --old-label "IG Publisher $BASELINE" --new-label "IG Publisher $CANDIDATE" \
+              --title "${IG_REPO#*/}: IG Publisher $BASELINE → $CANDIDATE" \
+              --new-base-url "${REPORT_URL}site/" --report-url "$REPORT_URL" \
+              --summary diff.md
+            echo >> summary.md
+            cat diff.md >> summary.md
+          fi
+          cp build-*.log report/ 2>/dev/null || true
+
+      - uses: ./tools/.github/actions/publish-report
+        with:
+          source: report
+          destination: publisher-test/${{ steps.versions.outputs.slug }}
+          message: "test: IG Publisher ${{ steps.versions.outputs.baseline }} vs ${{ steps.versions.outputs.candidate }} on ${{ inputs.ig-repo }}"
+
+      - name: Write summary
+        if: always()
+        run: |
+          if [ -f summary.md ]; then cat summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: publisher-test-logs
+          path: build-*.log
+          if-no-files-found: ignore
+
+      - name: Fail if the candidate build failed
+        if: steps.candidate.outcome != 'success'
+        run: |
+          echo "::error::The build with IG Publisher ${{ steps.versions.outputs.candidate }} failed."
+          exit 1

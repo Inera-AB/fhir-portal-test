@@ -1,0 +1,56 @@
+name: Publish report
+description: >-
+  Copies a folder to a path on this repo's gh-pages branch and pushes it, so
+  the report is served at https://inera-ab.github.io/fhir-portal-test/<destination>/.
+  The destination is replaced as a whole.
+
+inputs:
+  source:
+    description: Folder to publish, relative to the workspace.
+    required: true
+  destination:
+    description: Path on gh-pages, e.g. compare/tjanstekatalog-0.2.0-vs-main.
+    required: true
+  message:
+    description: Commit message.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        path: _gh-pages
+        sparse-checkout: ${{ inputs.destination }}
+        filter: blob:none
+
+    - name: Copy and push
+      shell: bash
+      working-directory: _gh-pages
+      env:
+        SOURCE: ${{ github.workspace }}/${{ inputs.source }}
+        DESTINATION: ${{ inputs.destination }}
+        MESSAGE: ${{ inputs.message }}
+      run: |
+        case "$DESTINATION" in
+          ""|/*|*..*|ig|ig/*) echo "::error::Refusing to publish to '$DESTINATION'."; exit 1 ;;
+        esac
+        rm -rf "$DESTINATION"
+        mkdir -p "$DESTINATION"
+        cp -a "$SOURCE/." "$DESTINATION/"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add -A "$DESTINATION"
+        if git diff --cached --quiet; then
+          echo "Nothing changed."
+          exit 0
+        fi
+        git commit -q -m "$MESSAGE"
+        # Other workflows push to gh-pages too; rebase onto them and retry.
+        for _ in 1 2 3; do
+          if git push -q origin HEAD:gh-pages; then exit 0; fi
+          git pull -q --rebase origin gh-pages
+        done
+        echo "::error::Could not push to gh-pages."
+        exit 1

@@ -1,3 +1,31 @@
+# fhir-portal-test
+
+Testwebbrot för Ineras FHIR-IG:er (serveras på https://inera-ab.github.io/fhir-portal-test/) och
+verktyg för att testa publicering innan något når [fhir.inera.se](https://fhir.inera.se).
+Under rubriken *fhir-portal* nedan beskrivs webbroten som den ser ut i `inera-ab/fhir-portal`.
+
+## Testverktyg
+
+Tre workflows som startas manuellt under **Actions → Run workflow**. Rapporterna hamnar i
+körningens sammanfattning, och för jämförelserna även som sidor på gh-pages här.
+
+| Workflow | Vad den testar | Resultat |
+|---|---|---|
+| **Test: länkar mellan IG:er** (`test-cross-ig-links.yml`) | Bygger en vald IG (repo + branch) och kontrollerar att länkar till `fhir.inera.se/ig/…` – till IG:ns egna publicerade sidor, till andra IG:er och till katalogen – och Inera-beroenden i `dependsOn` finns i den valda webbroten (`fhir-portal` eller `fhir-portal-test`). Länkar till IG:ns rot utan versionsmapp flaggas om publiceringen inte är en milstolpe (då flyttas inte roten). | Sammanfattning; röd körning om något saknas |
+| **Test: jämför IG-versioner** (`test-compare-versions.yml`) | Jämför två byggen sida för sida. Varje sida är en mapp på en gh-pages-branch: en publicerad version (`inera-ab/fhir-portal`, `ig/tjanstekatalog/0.2.0`) eller ett branchbygge (`inera-ab/tjanstekatalog`, tom sökväg = main, `branches/<namn>`). | `…/fhir-portal-test/compare/<namn>/`: index över ändrade, nya och borttagna sidor; varje ändrad sida visas i den nya versionens layout med tillagd text grön och borttagen text överstruken, som spåra ändringar |
+| **Test: ny IG Publisher-version** (`test-publisher-version.yml`) | Bygger en test-IG (standard `Inera-AB/IneraFHIRTemplate`) två gånger från samma commit: med versionen som är låst i `fhir-ig-workflows@v1` och med en ny (`latest` eller t.ex. `3.0.6`). Jämför QA-rapporterna (antal och nya/borttagna meddelanden) och alla sidor. | `…/fhir-portal-test/publisher-test/<ig>-<gammal>-vs-<ny>/`: QA-jämförelse (`qa.md`), spåra ändringar-sidor, byggloggar; röd körning om bygget med den nya versionen misslyckas |
+
+Bra att veta:
+
+- Båda byggena i publisher-testet använder samma IG-mall (`fhir2.base.template#current`), så en
+  ändring i mallen syns inte där. Den fångas i stället av *jämför IG-versioner*, t.ex. ett
+  branchbygge från i dag mot ett från i går eller mot senaste publicerade version.
+- Branchbyggen på ett IG-repos gh-pages publiceras med `keep_files`, så sidor som tagits bort ur
+  IG:n ligger kvar där och visas som *nya* i en jämförelse mot en publicerad version.
+- IG-repon och webbrötter läses anonymt, så de måste vara publika.
+- Skripten finns i `scripts/` (Python 3, `lxml` för sidjämförelsen) och testas av
+  `test-scripts.yml`: `python3 -m unittest discover -s scripts`.
+
 # fhir-portal
 
 Hub-repo för Ineras FHIR Implementation Guides, publicerade på **[fhir.inera.se](https://fhir.inera.se)**.
