@@ -4,9 +4,9 @@
     <description>Nya FHIR-paket publicerade av Inera</description>
     <link>https://fhir.inera.se/ig/package-feed.xml</link>
     <generator>HL7, Inc FHIR Publication tooling</generator>
-    <lastBuildDate>Mon, 16 Nov 2026 02:11:19 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 24 Nov 2026 09:48:32 +0000</lastBuildDate>
     <atom:link href="https://fhir.inera.se/ig/package-feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 16 Nov 2026 02:11:19 +0000</pubDate>
+    <pubDate>Tue, 24 Nov 2026 09:48:32 +0000</pubDate>
     <language>sv-SE</language>
     <ttl>600</ttl>
     <item>

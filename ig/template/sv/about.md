@@ -1,4 +1,4 @@
-# Om - Inera FHIR Implementation Guide Template v2.3.0
+# Om - Inera FHIR Implementation Guide Template v2.3.1
 
 ## Om
 

@@ -1,4 +1,4 @@
-# Versionshistorik - Inera FHIR Implementation Guide Template v2.3.0
+# Versionshistorik - Inera FHIR Implementation Guide Template v2.3.1
 
 ## Versionshistorik
 

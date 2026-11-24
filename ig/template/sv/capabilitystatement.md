@@ -1,4 +1,4 @@
-# CapabilityStatement - Inera FHIR Implementation Guide Template v2.3.0
+# CapabilityStatement - Inera FHIR Implementation Guide Template v2.3.1
 
 ## CapabilityStatement
 

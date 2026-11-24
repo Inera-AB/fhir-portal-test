@@ -1,4 +1,4 @@
-# Användningsfall - Inera FHIR Implementation Guide Template v2.3.0
+# Användningsfall - Inera FHIR Implementation Guide Template v2.3.1
 
 ## Användningsfall
 

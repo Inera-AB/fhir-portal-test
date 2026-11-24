@@ -12,7 +12,7 @@
 <html xml:lang="sv" xmlns="http://www.w3.org/1999/xhtml" lang="sv" dir="ltr">
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
-    <title>Inera Patient - JSON Representation - Inera FHIR Implementation Guide Template v2.3.0</title>
+    <title>Inera Patient - JSON Representation - Inera FHIR Implementation Guide Template v2.3.1</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="author" content="http://hl7.org/fhir"/>
@@ -28,9 +28,9 @@
   	<link href="assets/css/prism.css" rel="stylesheet" />
     <link href="assets/css/liquid.css" rel="stylesheet" />
     <link href="assets/css/project.css" rel="stylesheet"/>
-  	<link href="inera.css" rel="stylesheet"/>
-<link rel="icon" type="image/png" href="inera-thumbnail.png"/>
-<link rel="shortcut icon" href="inera-thumbnail.png"/>
+  	<link href="assets/css/inera.css" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="assets/images/inera-thumbnail.png"/>
+<link rel="shortcut icon" href="assets/images/inera-thumbnail.png"/>
 
 
     <script type="text/javascript" src="fhir-table-scripts.js"> </script>
@@ -54,7 +54,6 @@
 	  <script type="text/javascript" src="assets/js/prism.js"></script>
 	  <script type="text/javascript" src="assets/js/prism-fhirpath.js"></script>
 	  <script type="text/javascript" src="assets/js/prism-cql.js"></script>
-    <script type="text/javascript" src="assets/js/mermaid.js"></script>
     <script type="text/javascript" src="assets/js/mermaid-init.js"></script>
     <style type="text/css">h2{--heading-prefix:"16.1"}
     h3,h4,h5,h6{--heading-prefix:"16.1"}</style>
@@ -63,7 +62,7 @@
 
         <div id="inera-nav">
   <a id="inera-logo" data-no-external="true" href="https://www.inera.se">
-    <img height="50" alt="Inera" src="inera-logo-header.svg"/>
+    <img height="50" alt="Inera" src="assets/images/inera-logo-header.svg"/>
   </a>
 </div>
 
@@ -71,7 +70,7 @@
         <div id="ig-status" data-fhir="generated">
           <p><span style="font-size:12pt;font-weight:bold">Inera FHIR Implementation Guide Template</span>
             <br/>
-            <span style="display:inline-block;">2.3.0 - ci-build
+            <span style="display:inline-block;">2.3.1 - ci-build
 
 
 
@@ -162,7 +161,7 @@
           <div class="inner-wrapper">
 
 <div style="counter-reset: section 8" class="col-12">
-  <!--ReleaseHeader--><p id="publish-box">This page is part of the Inera FHIR Implementation Guide Template (v2.3.0: Release) based on <a data-no-external="true" href="http://hl7.org/fhir/R4">FHIR (HL7® FHIR® Standard) R4</a>. This is the current published version.  For a full list of available versions, see the <a data-no-external="true" href="https://fhir.inera.se/ig/template/history.html">Directory of published versions</a></p><!--EndReleaseHeader-->
+  <!--ReleaseHeader--><p id="publish-box">This page is part of the Inera FHIR Implementation Guide Template (v2.3.1: Release) based on <a data-no-external="true" href="http://hl7.org/fhir/R4">FHIR (HL7® FHIR® Standard) R4</a>. This is the current published version.  For a full list of available versions, see the <a data-no-external="true" href="https://fhir.inera.se/ig/template/history.html">Directory of published versions</a></p><!--EndReleaseHeader-->
   
 
 
@@ -288,7 +287,7 @@ JSON-profil
       "<a href="http://hl7.org/fhir/R4/datatypes.html#Identifier#Identifier.value">value</a>" : "IneraPatient"
     }
   ],
-  "<a href="http://hl7.org/fhir/R4/structuredefinition.html#StructureDefinition.version">version</a>" : "2.3.0",
+  "<a href="http://hl7.org/fhir/R4/structuredefinition.html#StructureDefinition.version">version</a>" : "2.3.1",
   "<a href="http://hl7.org/fhir/R4/structuredefinition.html#StructureDefinition.name">name</a>" : "IneraPatient",
   "<a href="http://hl7.org/fhir/R4/structuredefinition.html#StructureDefinition.title">title</a>" : "Inera Patient",
   "<a href="http://hl7.org/fhir/R4/structuredefinition.html#StructureDefinition.status">status</a>" : "draft",
@@ -1229,7 +1228,7 @@ JSON-profil
           {
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.code">code</a>" : "Reference",
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.targetProfile">targetProfile</a>" : [
-              <a href="http://hl7.org/fhir/R4/organization.html" style="color: Maroon">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"
+              <a href="http://hl7.org/fhir/R4/organization.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"
             ]
           }
         ],
@@ -3283,7 +3282,7 @@ JSON-profil
           {
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.code">code</a>" : "Reference",
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.targetProfile">targetProfile</a>" : [
-              <a href="http://hl7.org/fhir/R4/organization.html" style="color: Maroon">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"
+              <a href="http://hl7.org/fhir/R4/organization.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"
             ]
           }
         ],
@@ -3662,8 +3661,8 @@ JSON-profil
           {
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.code">code</a>" : "Reference",
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.targetProfile">targetProfile</a>" : [
-              <a href="http://hl7.org/fhir/R4/organization.html" style="color: Maroon">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"<a href="http://hl7.org/fhir/R4/practitioner.html" style="color: Maroon">&#x1F517;</a> ,
-              "http://hl7.org/fhir/StructureDefinition/Practitioner|4.0.1"<a href="http://hl7.org/fhir/R4/practitionerrole.html" style="color: Maroon">&#x1F517;</a> ,
+              <a href="http://hl7.org/fhir/R4/organization.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"<a href="http://hl7.org/fhir/R4/practitioner.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> ,
+              "http://hl7.org/fhir/StructureDefinition/Practitioner|4.0.1"<a href="http://hl7.org/fhir/R4/practitionerrole.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> ,
               "http://hl7.org/fhir/StructureDefinition/PractitionerRole|4.0.1"
             ]
           }
@@ -3713,7 +3712,7 @@ JSON-profil
           {
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.code">code</a>" : "Reference",
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.targetProfile">targetProfile</a>" : [
-              <a href="http://hl7.org/fhir/R4/organization.html" style="color: Maroon">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"
+              <a href="http://hl7.org/fhir/R4/organization.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Organization|4.0.1"
             ]
           }
         ],
@@ -3942,7 +3941,7 @@ JSON-profil
             ],
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.code">code</a>" : "Reference",
             "<a href="http://hl7.org/fhir/R4/datatypes.html#ElementDefinition#ElementDefinition.type.targetProfile">targetProfile</a>" : [
-              <a href="http://hl7.org/fhir/R4/patient.html" style="color: Maroon">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Patient|4.0.1"<a href="http://hl7.org/fhir/R4/relatedperson.html" style="color: Maroon">&#x1F517;</a> ,
+              <a href="http://hl7.org/fhir/R4/patient.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> "http://hl7.org/fhir/StructureDefinition/Patient|4.0.1"<a href="http://hl7.org/fhir/R4/relatedperson.html" class="targetLink" aria-label="Link to the referenced resource (repeats the reference, can be ignored)">&#x1F517;</a> ,
               "http://hl7.org/fhir/StructureDefinition/RelatedPerson|4.0.1"
             ]
           }
@@ -4151,10 +4150,10 @@ JSON-profil
 
 
           IG © 2024+ <a style="color:var(--footer-hyperlink-text-color)" href="https://www.inera.se">Inera AB</a>.  
-          Paket inera.core.template#2.3.0 baserat på <a style="color: var(--footer-hyperlink-text-color)" href="http://hl7.org/fhir/R4/">FHIR 4.0.1</a>.
+          Paket inera.core.template#2.3.1 baserat på <a style="color: var(--footer-hyperlink-text-color)" href="http://hl7.org/fhir/R4/">FHIR 4.0.1</a>.
           Genererad 
-  <span title="2026-10-21 09:38:00 +0000">
-    2026-10-21
+  <span title="2026-11-24 09:49:00 +0000">
+    2026-11-24
   </span>
 
           <br/>

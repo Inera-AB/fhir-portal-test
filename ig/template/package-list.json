@@ -12,13 +12,22 @@
     "desc" : "Continuous Integration Build (latest in version control) - Content subject to frequent changes"
   },
   {
+    "version" : "2.3.1",
+    "path" : "https://fhir.inera.se/ig/template/2.3.1",
+    "status" : "release",
+    "sequence" : "Releases",
+    "fhirversion" : "4.0.1",
+    "date" : "2026-11-24",
+    "current" : true,
+    "desc" : "Testpublicering: token från organisationens GitHub App."
+  },
+  {
     "version" : "2.3.0",
     "path" : "https://fhir.inera.se/ig/template/2.3.0",
     "status" : "release",
     "sequence" : "Releases",
     "fhirversion" : "4.0.1",
     "date" : "2026-10-21",
-    "current" : true,
     "desc" : "Övergång till IG Publishers officiella publiceringsläge."
   },
   {

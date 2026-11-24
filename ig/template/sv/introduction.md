@@ -1,4 +1,4 @@
-# Inledning - Inera FHIR Implementation Guide Template v2.3.0
+# Inledning - Inera FHIR Implementation Guide Template v2.3.1
 
 ## Inledning
 

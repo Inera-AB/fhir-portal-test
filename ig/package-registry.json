@@ -6,16 +6,16 @@
     "canonical" : "https://fhir.inera.se/ig/template",
     "category" : "National Base",
     "ci-build" : "https://inera-ab.github.io/IneraFHIRTemplate",
-    "version-count" : 6,
+    "version-count" : 7,
     "latest" : {
-      "version" : "2.3.0",
-      "date" : "2026-10-21",
-      "path" : "https://fhir.inera.se/ig/template/2.3.0"
+      "version" : "2.3.1",
+      "date" : "2026-11-24",
+      "path" : "https://fhir.inera.se/ig/template/2.3.1"
     },
     "milestone" : {
-      "version" : "2.3.0",
-      "date" : "2026-10-21",
-      "path" : "https://fhir.inera.se/ig/template/2.3.0"
+      "version" : "2.3.1",
+      "date" : "2026-11-24",
+      "path" : "https://fhir.inera.se/ig/template/2.3.1"
     }
   },
   {

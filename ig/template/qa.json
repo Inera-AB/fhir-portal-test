@@ -5,9 +5,9 @@
   "description" : "Mall för Ineras FHIR Implementation Guides.",
   "status" : "draft",
   "package-id" : "inera.core.template",
-  "ig-ver" : "2.3.0",
-  "date" : "Wed, 21 Oct, 2026 09:38:34 +0000",
-  "dateISO8601" : "2026-10-21T09:38:34+00:00",
+  "ig-ver" : "2.3.1",
+  "date" : "Tue, 24 Nov, 2026 09:49:05 +0000",
+  "dateISO8601" : "2026-11-24T09:49:05+00:00",
   "errs" : 0,
   "warnings" : 1,
   "hints" : 5,
@@ -16,5 +16,5 @@
   "suppressed-warnings" : 3,
   "version" : "4.0.1",
   "tool" : "6.0.0-snapshot1 (3)",
-  "maxMemory" : 1432173552
+  "maxMemory" : 1300663768
 }
